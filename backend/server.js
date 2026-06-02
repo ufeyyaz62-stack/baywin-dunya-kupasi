@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbyzrUjyyXI4T8V5MB7qqqDmYmDvi5o-P4g7wnbglJbCEGBmLWkOokK1B9k_snWLLHi5CQ/exec";
+     "https://script.google.com/macros/s/AKfycbyPfTuOT6zYoTNAWWKiokptEpIxG6VeEfN9MJ6gp0q7IwSRnbUdE9rTM4IjwKQc6f3DrQ/exec";
 
 async function getUsers() {
     const response = await fetch(SHEET_API);

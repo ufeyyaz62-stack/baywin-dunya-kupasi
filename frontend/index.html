@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baywin Dünya Kupası</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+    <div class="card" id="loginPage">
+        <h1>Baywin Dünya Kupası</h1>
+        <p class="subtitle">Tahmin yarışmasına katıl</p>
+
+        <input type="text" id="username" placeholder="Kullanıcı adını yaz">
+
+        <button class="main-btn" onclick="startGame()">Devam Et</button>
+    </div>
+
+    <div class="card match-card-wrap" id="matchPage" style="display:none;">
+        <h2>Maç Tahminleri</h2>
+        <p class="subtitle">Her maç için 1 - X - 2 seç</p>
+
+        <div id="matches"></div>
+
+        <button class="main-btn" onclick="submitPredictions()">Tahminleri Gönder</button>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

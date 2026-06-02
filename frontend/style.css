@@ -6,7 +6,7 @@
 
 body{
     min-height:100vh;
-    background:url("bg.jpg") center/cover no-repeat;
+    background:url("bg.jpg?v=3") center/cover no-repeat;
     font-family:Arial, sans-serif;
     color:white;
 }
@@ -15,8 +15,8 @@ body::before{
     content:"";
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.72);
-    backdrop-filter:blur(4px);
+    background:rgba(0,0,0,0.86);
+    backdrop-filter:blur(8px);
 }
 
 .app{
@@ -32,10 +32,12 @@ body::before{
 .card{
     width:100%;
     max-width:520px;
-    background:rgba(0,0,0,0.82);
+    background:rgba(0,0,0,0.88);
+    border:1px solid rgba(0,200,83,0.25);
     border-radius:22px;
     padding:24px;
     text-align:center;
+    box-shadow:0 0 35px rgba(0,0,0,0.65);
 }
 
 .subtitle{
@@ -65,8 +67,8 @@ input{
 }
 
 .match-card{
-    background:rgba(255,255,255,0.10);
-    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.10);
     border-radius:16px;
     padding:15px;
     margin-bottom:14px;
@@ -148,21 +150,19 @@ input{
     cursor:pointer;
 }
 
-/* TELEFON GÖRÜNÜMÜ */
 @media (max-width: 768px) {
     body{
-        background-size:cover;
-        background-position:center top;
+        background:url("bg.jpg?v=3") center/cover no-repeat;
     }
 
     body::before{
-        background:rgba(0,0,0,0.78);
-        backdrop-filter:blur(6px);
+        background:rgba(0,0,0,0.88);
+        backdrop-filter:blur(9px);
     }
 
     .app{
         align-items:flex-start;
-        padding:12px;
+        padding:10px;
     }
 
     .card{

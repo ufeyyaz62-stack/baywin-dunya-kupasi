@@ -1,10 +1,12 @@
+const API_URL = "https://baywin-dunya-kupasi.onrender.com";
+
 const correctAnswers = {};
 
 const matches = [
-    { id: 1, home: "Hırvatistan", away: "Belçika" },
-    { id: 2, home: "Gürcistan", away: "Romanya" },
-    { id: 3, home: "Fas", away: "Madagaskar" },
-    { id: 4, home: "Galler", away: "Gana" }
+    { id: 1, home: "🇭🇷 Hırvatistan", away: "🇧🇪 Belçika" },
+    { id: 2, home: "🇬🇪 Gürcistan", away: "🇷🇴 Romanya" },
+    { id: 3, home: "🇲🇦 Fas", away: "🇲🇬 Madagaskar" },
+    { id: 4, home: "🏴 Galler", away: "🇬🇭 Gana" }
 ];
 
 window.onload = function () {
@@ -13,7 +15,12 @@ window.onload = function () {
     matches.forEach(match => {
         area.innerHTML += `
             <div class="match-card">
-                <div class="teams">${match.home} <span class="vs">VS</span> ${match.away}</div>
+                <div class="teams">
+                    <span>${match.home}</span>
+                    <span class="vs">VS</span>
+                    <span>${match.away}</span>
+                </div>
+
                 <div class="options">
                     <button class="option-btn" onclick="selectCorrect(${match.id}, '1', this)">1</button>
                     <button class="option-btn" onclick="selectCorrect(${match.id}, 'X', this)">X</button>
@@ -36,11 +43,11 @@ function selectCorrect(matchId, choice, btn) {
 
 async function calculateResults() {
     if (Object.keys(correctAnswers).length < matches.length) {
-        alert("Tüm maçların doğru sonucunu seç.");
+        showMessage("Tüm maçların doğru sonucunu seç.", "Eksik Seçim");
         return;
     }
 
-    const response = await fetch("http://localhost:3000/results", {
+    const response = await fetch(`${API_URL}/results`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -50,14 +57,48 @@ async function calculateResults() {
 
     const data = await response.json();
 
-    let html = "<h2>Sonuçlar</h2>";
+    let html = `
+        <div style="margin-top:25px;">
+            <h2>Sonuçlar</h2>
+            <p class="subtitle">Toplam Katılımcı: ${data.total || 0}</p>
+        </div>
+    `;
 
     data.groups.forEach(group => {
-        html += `<h3>${group.score} Doğru</h3>`;
+        const icon =
+            group.score == 4 ? "🏆" :
+            group.score == 3 ? "🥈" :
+            group.score == 2 ? "🥉" : "🎯";
+
+        html += `
+            <div class="match-card">
+                <h3>${icon} ${group.score} Doğru</h3>
+        `;
+
         group.users.forEach(user => {
-            html += `<p>${user.username}</p>`;
+            html += `<p style="margin-top:8px;font-weight:bold;">${user.username}</p>`;
         });
+
+        html += `</div>`;
     });
 
     document.getElementById("results").innerHTML = html;
+}
+
+function showMessage(text, title = "Bilgi") {
+    const oldBox = document.querySelector(".custom-alert");
+    if (oldBox) oldBox.remove();
+
+    const box = document.createElement("div");
+    box.className = "custom-alert";
+
+    box.innerHTML = `
+        <div class="custom-alert-box">
+            <h3>${title}</h3>
+            <p>${text}</p>
+            <button onclick="this.closest('.custom-alert').remove()">Tamam</button>
+        </div>
+    `;
+
+    document.body.appendChild(box);
 }

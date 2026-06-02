@@ -1,92 +1,60 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const FILE = "users.json";
-
 const SHEET_API =
-     "https://script.google.com/macros/s/AKfycbyzrUjyyXI4T8V5MB7qqqDmYmDvi5o-P4g7wnbglJbCEGBmLWkOokK1B9k_snWLLHi5CQ/exec";
-app.get("/check/:username", (req, res) => {
-    const username = req.params.username;
+    "https://script.google.com/macros/s/AKfycbyzrUjyyXI4T8V5MB7qqqDmYmDvi5o-P4g7wnbglJbCEGBmLWkOokK1B9k_snWLLHi5CQ/exec";
 
-    let users = [];
+async function getUsers() {
+    const response = await fetch(SHEET_API);
+    const data = await response.json();
+    return data.users || [];
+}
 
-    if (fs.existsSync(FILE)) {
-        users = JSON.parse(fs.readFileSync(FILE, "utf8"));
-    }
+app.get("/check/:username", async (req, res) => {
+    const username = req.params.username.toLowerCase();
+    const users = await getUsers();
 
-    const exists = users.find(
-        x => x.username.toLowerCase() === username.toLowerCase()
+    const exists = users.some(
+        user => String(user.username).toLowerCase() === username
     );
 
-    res.json({ exists: !!exists });
+    res.json({ exists });
 });
 
 app.post("/submit", async (req, res) => {
     const { username, predictions } = req.body;
 
-    if (!username) {
+    if (!username || !predictions) {
         return res.json({
-            success: false,
-            message: "Kullanıcı adı gerekli"
+            success:false,
+            message:"Eksik bilgi var"
         });
     }
 
-    let users = [];
-
-    if (fs.existsSync(FILE)) {
-        users = JSON.parse(fs.readFileSync(FILE, "utf8"));
-    }
-
-    const exists = users.find(
-        x => x.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (exists) {
-        return res.json({
-            success: false,
-            message: "Bu kullanıcı adı kullanılmış"
-        });
-    }
-
-    users.push({
-        username,
-        predictions,
-        date: new Date()
-    });
-
-    fs.writeFileSync(FILE, JSON.stringify(users, null, 2));
-
-    await fetch(SHEET_API, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+    const response = await fetch(SHEET_API, {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
         },
-        body: JSON.stringify({
+        body:JSON.stringify({
             username,
             predictions
         })
     });
 
-    res.json({
-        success: true,
-        message: "Tahminler kaydedildi"
-    });
+    const result = await response.json();
+
+    res.json(result);
 });
 
-app.post("/results", (req, res) => {
+app.post("/results", async (req, res) => {
     const { correctAnswers } = req.body;
-
-    let users = [];
-
-    if (fs.existsSync(FILE)) {
-        users = JSON.parse(fs.readFileSync(FILE, "utf8"));
-    }
+    const users = await getUsers();
 
     const resultMap = {};
 
@@ -96,7 +64,7 @@ app.post("/results", (req, res) => {
         for (let i = 1; i <= 4; i++) {
             if (
                 user.predictions &&
-                user.predictions[i] === correctAnswers[i]
+                user.predictions[String(i)] === correctAnswers[String(i)]
             ) {
                 score++;
             }
@@ -107,18 +75,23 @@ app.post("/results", (req, res) => {
         }
 
         resultMap[score].push({
-            username: user.username
+            username:user.username
         });
     });
 
-const groups = Object.keys(resultMap)
-    .sort((a, b) => b - a)
-    .map(score => ({
-        score,
-        users: resultMap[score]
-    }));
+    const groups = Object.keys(resultMap)
+        .sort((a, b) => b - a)
+        .map(score => ({
+            score,
+            users:resultMap[score]
+        }));
 
-res.json({
-    total: users.length,
-    groups
+    res.json({
+        total:users.length,
+        groups
+    });
+});
+
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Server çalışıyor");
 });

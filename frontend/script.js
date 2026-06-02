@@ -1,3 +1,5 @@
+const API_URL = "https://baywin-dunya-kupasi.onrender.com";
+
 const matches = [
     { id: 1, home: "🇭🇷 Hırvatistan", away: "🇧🇪 Belçika" },
     { id: 2, home: "🇬🇪 Gürcistan", away: "🇷🇴 Romanya" },
@@ -11,27 +13,29 @@ async function startGame() {
     const username = document.getElementById("username").value.trim();
 
     if (username.length < 3) {
-        alert("Kullanıcı adı en az 3 karakter olmalı");
+        showMessage("Kullanıcı adı en az 3 karakter olmalı.", "Uyarı");
         return;
     }
 
-    const response = await fetch(
-        "https://baywin-dunya-kupasi.onrender.com/check/" + username
-    );
+    try {
+        const response = await fetch(`${API_URL}/check/${encodeURIComponent(username)}`);
+        const result = await response.json();
 
-    const result = await response.json();
+        if (result.exists) {
+            showMessage("Bu kullanıcı adı daha önce kullanılmış.", "Uyarı");
+            return;
+        }
 
-    if (result.exists) {
-        alert("Bu kullanıcı adı kullanılmış");
-        return;
+        localStorage.setItem("username", username);
+
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("matchPage").style.display = "block";
+
+        loadMatches();
+
+    } catch (error) {
+        showMessage("Bağlantı hatası. Lütfen tekrar dene.", "Hata");
     }
-
-    localStorage.setItem("username", username);
-
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("matchPage").style.display = "block";
-
-    loadMatches();
 }
 
 function loadMatches() {
@@ -42,9 +46,9 @@ function loadMatches() {
         container.innerHTML += `
             <div class="match-card">
                 <div class="teams">
-                    ${match.home}
+                    <span>${match.home}</span>
                     <span class="vs">VS</span>
-                    ${match.away}
+                    <span>${match.away}</span>
                 </div>
 
                 <div class="options">
@@ -73,13 +77,12 @@ async function submitPredictions() {
     const username = localStorage.getItem("username");
 
     if (Object.keys(predictions).length < matches.length) {
-        showMessage("Lütfen tüm maçlar için seçim yap.");
+        showMessage("Lütfen tüm maçlar için seçim yap.", "Eksik Seçim");
         return;
     }
 
-    const response = await fetch(
-        "https://baywin-dunya-kupasi.onrender.com/submit",
-        {
+    try {
+        const response = await fetch(`${API_URL}/submit`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -88,26 +91,35 @@ async function submitPredictions() {
                 username,
                 predictions
             })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage("Tahminlerin kaydedildi.", "Başarılı ✅");
+        } else {
+            showMessage(result.message || "Bir hata oluştu.", "Uyarı");
         }
-    );
 
-    const result = await response.json();
-
-    if (result.success) {
-     showMessage("Tahminlerin kaydedildi.");
-    } else {
-       showMessage(result.message);
+    } catch (error) {
+        showMessage("Kayıt sırasında bağlantı hatası oluştu.", "Hata");
     }
 }
-function showMessage(text) {
+
+function showMessage(text, title = "Bilgi") {
+    const oldBox = document.querySelector(".custom-alert");
+    if (oldBox) oldBox.remove();
+
     const box = document.createElement("div");
     box.className = "custom-alert";
+
     box.innerHTML = `
         <div class="custom-alert-box">
-            <h3>Başarılı ✅</h3>
+            <h3>${title}</h3>
             <p>${text}</p>
-            <button onclick="this.parentElement.parentElement.remove()">Tamam</button>
+            <button onclick="this.closest('.custom-alert').remove()">Tamam</button>
         </div>
     `;
+
     document.body.appendChild(box);
 }

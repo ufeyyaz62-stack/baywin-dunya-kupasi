@@ -111,16 +111,14 @@ app.post("/results", (req, res) => {
         });
     });
 
-    const groups = Object.keys(resultMap)
-        .sort((a, b) => b - a)
-        .map(score => ({
-            score,
-            users: resultMap[score]
-        }));
+const groups = Object.keys(resultMap)
+    .sort((a, b) => b - a)
+    .map(score => ({
+        score,
+        users: resultMap[score]
+    }));
 
-    res.json({ groups });
-});
-
-app.listen(3000, () => {
-    console.log("Server çalışıyor");
+res.json({
+    total: users.length,
+    groups
 });

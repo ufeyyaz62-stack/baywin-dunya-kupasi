@@ -1,3 +1,24 @@
+const ADMIN_PASSWORD = "1903baywin";
+
+const pass = prompt("Yönetici Şifresi");
+
+if (pass !== ADMIN_PASSWORD) {
+    document.body.innerHTML = `
+        <div style="
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#000;
+            color:#fff;
+            font-size:32px;
+            font-weight:bold;
+        ">
+            Yetkisiz Erişim
+        </div>
+    `;
+    throw new Error("Yetkisiz erişim");
+}
 const API_URL = "https://baywin-dunya-kupasi.onrender.com";
 
 const correctAnswers = {};

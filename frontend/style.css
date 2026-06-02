@@ -146,3 +146,61 @@ input{
     font-weight:bold;
     cursor:pointer;
 }
+@media (max-width: 768px) {
+
+    body{
+        background-position:center;
+        background-size:cover;
+    }
+
+    .container{
+        width:95%;
+        max-width:420px;
+        padding:20px;
+        margin:20px auto;
+    }
+
+    h1{
+        font-size:28px;
+    }
+
+    .subtitle{
+        font-size:15px;
+    }
+
+    .match-card{
+        padding:15px;
+        margin-bottom:12px;
+    }
+
+    .teams{
+        font-size:18px;
+        line-height:1.4;
+        flex-wrap:wrap;
+        text-align:center;
+    }
+
+    .vs{
+        margin:0 8px;
+    }
+
+    .options{
+        gap:8px;
+    }
+
+    .option-btn{
+        width:60px;
+        height:50px;
+        font-size:22px;
+    }
+
+    .submit-btn{
+        height:55px;
+        font-size:18px;
+    }
+
+    .custom-alert-box{
+        width:90%;
+        padding:25px;
+    }
+}

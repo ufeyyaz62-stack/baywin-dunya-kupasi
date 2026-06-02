@@ -85,11 +85,14 @@ async function calculateResults() {
         </div>
     `;
 
-    data.groups.forEach(group => {
-        const icon =
-            group.score == 4 ? "🏆" :
-            group.score == 3 ? "🥈" :
-            group.score == 2 ? "🥉" : "🎯";
+   data.groups.forEach(group => {
+
+    if (group.score == 0) return;
+
+    const icon =
+        group.score == 4 ? "🏆" :
+        group.score == 3 ? "🥈" :
+        group.score == 2 ? "🥉" : "🎯";
 
         html += `
             <div class="match-card">

@@ -94,8 +94,20 @@ async function submitPredictions() {
     const result = await response.json();
 
     if (result.success) {
-        alert("Tahminlerin kaydedildi.");
+     showMessage("Tahminlerin kaydedildi.");
     } else {
         alert(result.message);
     }
+}
+function showMessage(text) {
+    const box = document.createElement("div");
+    box.className = "custom-alert";
+    box.innerHTML = `
+        <div class="custom-alert-box">
+            <h3>Başarılı ✅</h3>
+            <p>${text}</p>
+            <button onclick="this.parentElement.parentElement.remove()">Tamam</button>
+        </div>
+    `;
+    document.body.appendChild(box);
 }

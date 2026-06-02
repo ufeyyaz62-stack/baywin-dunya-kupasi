@@ -73,7 +73,7 @@ async function submitPredictions() {
     const username = localStorage.getItem("username");
 
     if (Object.keys(predictions).length < matches.length) {
-        alert("Lütfen tüm maçlar için seçim yap.");
+        showMessage("Lütfen tüm maçlar için seçim yap.");
         return;
     }
 
@@ -96,7 +96,7 @@ async function submitPredictions() {
     if (result.success) {
      showMessage("Tahminlerin kaydedildi.");
     } else {
-        alert(result.message);
+       showMessage(result.message);
     }
 }
 function showMessage(text) {

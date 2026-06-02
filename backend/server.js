@@ -1,97 +1,159 @@
-const express = require("express");
-const cors = require("cors");
+const ADMIN_PASSWORD = "1903baywin";
 
-const app = express();
+const pass = prompt("Yönetici Şifresi");
 
-app.use(cors());
-app.use(express.json());
-
-const SHEET_API =
-     "https://script.google.com/macros/s/AKfycbyPfTuOT6zYoTNAWWKiokptEpIxG6VeEfN9MJ6gp0q7IwSRnbUdE9rTM4IjwKQc6f3DrQ/exec";
-
-async function getUsers() {
-    const response = await fetch(SHEET_API);
-    const data = await response.json();
-    return data.users || [];
+if (pass !== ADMIN_PASSWORD) {
+    document.body.innerHTML = `
+        <div style="
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#000;
+            color:#fff;
+            font-size:32px;
+            font-weight:bold;
+        ">
+            Yetkisiz Erişim
+        </div>
+    `;
+    throw new Error("Yetkisiz erişim");
 }
 
-app.get("/check/:username", async (req, res) => {
-    const username = req.params.username.toLowerCase();
-    const users = await getUsers();
+const API_URL = "https://baywin-dunya-kupasi.onrender.com";
 
-    const exists = users.some(
-        user => String(user.username).toLowerCase() === username
-    );
+const correctAnswers = {};
 
-    res.json({ exists });
-});
+const matches = [
+    { id: 1, home: "🇭🇷 Hırvatistan", away: "🇧🇪 Belçika" },
+    { id: 2, home: "🇬🇪 Gürcistan", away: "🇷🇴 Romanya" },
+    { id: 3, home: "🇲🇦 Fas", away: "🇲🇬 Madagaskar" },
+    { id: 4, home: "🏴 Galler", away: "🇬🇭 Gana" }
+];
 
-app.post("/submit", async (req, res) => {
-    const { username, predictions } = req.body;
+window.onload = function () {
+    const area = document.getElementById("adminMatches");
 
-    if (!username || !predictions) {
-        return res.json({
-            success:false,
-            message:"Eksik bilgi var"
-        });
+    matches.forEach(match => {
+        area.innerHTML += `
+            <div class="match-card">
+                <div class="teams">
+                    <span>${match.home}</span>
+                    <span class="vs">VS</span>
+                    <span>${match.away}</span>
+                </div>
+
+                <div class="options">
+                    <button class="option-btn" onclick="selectCorrect(${match.id}, '1', this)">1</button>
+                    <button class="option-btn" onclick="selectCorrect(${match.id}, 'X', this)">X</button>
+                    <button class="option-btn" onclick="selectCorrect(${match.id}, '2', this)">2</button>
+                </div>
+            </div>
+        `;
+    });
+};
+
+function selectCorrect(matchId, choice, btn) {
+    correctAnswers[matchId] = choice;
+
+    btn.parentElement
+        .querySelectorAll("button")
+        .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+}
+
+async function calculateResults() {
+    if (Object.keys(correctAnswers).length < matches.length) {
+        showMessage("Tüm maçların doğru sonucunu seç.", "Eksik Seçim");
+        return;
     }
 
-    const response = await fetch(SHEET_API, {
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
+    const response = await fetch(`${API_URL}/results`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
         },
-        body:JSON.stringify({
-            username,
-            predictions
-        })
+        body: JSON.stringify({ correctAnswers })
+    });
+
+    const data = await response.json();
+
+    let html = `
+        <div style="margin-top:25px;">
+            <h2>Sonuçlar</h2>
+            <p class="subtitle">Toplam Katılımcı: ${data.total || 0}</p>
+        </div>
+    `;
+
+    const winners = [];
+
+    data.groups.forEach(group => {
+        if (Number(group.score) === 0) return;
+
+        const icon =
+            group.score == 4 ? "🏆" :
+            group.score == 3 ? "🥈" :
+            group.score == 2 ? "🥉" : "🎯";
+
+        html += `
+            <div class="match-card">
+                <h3>${icon} ${group.score} Doğru</h3>
+        `;
+
+        group.users.forEach(user => {
+            html += `<p style="margin-top:8px;font-weight:bold;">${user.username}</p>`;
+
+            winners.push({
+                username: user.username,
+                score: group.score,
+                predictions: user.predictions || {}
+            });
+        });
+
+        html += `</div>`;
+    });
+
+    document.getElementById("results").innerHTML = html;
+
+    await saveWinnersToSheet(winners);
+}
+
+async function saveWinnersToSheet(winners) {
+    const response = await fetch(`${API_URL}/save-winners`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ winners })
     });
 
     const result = await response.json();
 
-    res.json(result);
-});
+    if (result.success) {
+        showMessage(
+            `${result.count} kişi Kazananlar sekmesine yazıldı.`,
+            "Kazananlar Kaydedildi ✅"
+        );
+    } else {
+        showMessage("Kazananlar tabloya yazılamadı.", "Hata");
+    }
+}
 
-app.post("/results", async (req, res) => {
-    const { correctAnswers } = req.body;
-    const users = await getUsers();
+function showMessage(text, title = "Bilgi") {
+    const oldBox = document.querySelector(".custom-alert");
+    if (oldBox) oldBox.remove();
 
-    const resultMap = {};
+    const box = document.createElement("div");
+    box.className = "custom-alert";
 
-    users.forEach(user => {
-        let score = 0;
+    box.innerHTML = `
+        <div class="custom-alert-box">
+            <h3>${title}</h3>
+            <p>${text}</p>
+            <button onclick="this.closest('.custom-alert').remove()">Tamam</button>
+        </div>
+    `;
 
-        for (let i = 1; i <= 4; i++) {
-            if (
-                user.predictions &&
-                user.predictions[String(i)] === correctAnswers[String(i)]
-            ) {
-                score++;
-            }
-        }
-
-        if (!resultMap[score]) {
-            resultMap[score] = [];
-        }
-
-        resultMap[score].push({
-            username:user.username
-        });
-    });
-
-    const groups = Object.keys(resultMap)
-        .sort((a, b) => b - a)
-        .map(score => ({
-            score,
-            users:resultMap[score]
-        }));
-
-    res.json({
-        total:users.length,
-        groups
-    });
-});
-
-app.listen(process.env.PORT || 3000, () => {
-    console.log("Server çalışıyor");
-});
+    document.body.appendChild(box);
+}

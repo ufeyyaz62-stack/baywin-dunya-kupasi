@@ -1,19 +1,20 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const path = require("path");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, "../frontend")));
-
 const FILE = "users.json";
+
+const SHEET_API =
+    "https://script.google.com/macros/s/AKfycbyNW-jaIm-p7CizJnP8bYmls-yW3eXJyORuHDpQkbNZaqSooUEzgq6Ii9waNyi2ansS/exec";
 
 app.get("/check/:username", (req, res) => {
     const username = req.params.username;
+
     let users = [];
 
     if (fs.existsSync(FILE)) {
@@ -27,7 +28,7 @@ app.get("/check/:username", (req, res) => {
     res.json({ exists: !!exists });
 });
 
-app.post("/submit", (req, res) => {
+app.post("/submit", async (req, res) => {
     const { username, predictions } = req.body;
 
     if (!username) {
@@ -62,6 +63,17 @@ app.post("/submit", (req, res) => {
 
     fs.writeFileSync(FILE, JSON.stringify(users, null, 2));
 
+    await fetch(SHEET_API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username,
+            predictions
+        })
+    });
+
     res.json({
         success: true,
         message: "Tahminler kaydedildi"
@@ -70,6 +82,7 @@ app.post("/submit", (req, res) => {
 
 app.post("/results", (req, res) => {
     const { correctAnswers } = req.body;
+
     let users = [];
 
     if (fs.existsSync(FILE)) {
@@ -110,5 +123,5 @@ app.post("/results", (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log("Server çalışıyor: http://localhost:3000");
+    console.log("Server çalışıyor");
 });

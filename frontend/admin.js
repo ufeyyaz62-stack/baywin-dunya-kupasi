@@ -19,6 +19,7 @@ if (pass !== ADMIN_PASSWORD) {
     `;
     throw new Error("Yetkisiz erişim");
 }
+
 const API_URL = "https://baywin-dunya-kupasi.onrender.com";
 
 const correctAnswers = {};
@@ -85,14 +86,15 @@ async function calculateResults() {
         </div>
     `;
 
-   data.groups.forEach(group => {
+    const winners = [];
 
-    if (group.score == 0) return;
+    data.groups.forEach(group => {
+        if (Number(group.score) === 0) return;
 
-    const icon =
-        group.score == 4 ? "🏆" :
-        group.score == 3 ? "🥈" :
-        group.score == 2 ? "🥉" : "🎯";
+        const icon =
+            group.score == 4 ? "🏆" :
+            group.score == 3 ? "🥈" :
+            group.score == 2 ? "🥉" : "🎯";
 
         html += `
             <div class="match-card">
@@ -101,12 +103,41 @@ async function calculateResults() {
 
         group.users.forEach(user => {
             html += `<p style="margin-top:8px;font-weight:bold;">${user.username}</p>`;
+
+            winners.push({
+                username: user.username,
+                score: group.score,
+                predictions: user.predictions || {}
+            });
         });
 
         html += `</div>`;
     });
 
     document.getElementById("results").innerHTML = html;
+
+    await saveWinnersToSheet(winners);
+}
+
+async function saveWinnersToSheet(winners) {
+    const response = await fetch(`${API_URL}/save-winners`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ winners })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+        showMessage(
+            `${result.count} kişi Kazananlar sekmesine yazıldı.`,
+            "Kazananlar Kaydedildi ✅"
+        );
+    } else {
+        showMessage("Kazananlar tabloya yazılamadı.", "Hata");
+    }
 }
 
 function showMessage(text, title = "Bilgi") {

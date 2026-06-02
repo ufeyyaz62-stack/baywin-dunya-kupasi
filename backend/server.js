@@ -10,7 +10,7 @@ app.use(express.json());
 const FILE = "users.json";
 
 const SHEET_API =
-     "https://script.google.com/macros/s/AKfycbwjoMxQCp80FWB_cmJ0AwsLaLwjvHSc0Wu1ZslGm9WNWwlJcIBWcNcvignuFles0vigKw/exec";
+     "https://script.google.com/macros/s/AKfycbyzrUjyyXI4T8V5MB7qqqDmYmDvi5o-P4g7wnbglJbCEGBmLWkOokK1B9k_snWLLHi5CQ/exec";
 app.get("/check/:username", (req, res) => {
     const username = req.params.username;
 

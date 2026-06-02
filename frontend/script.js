@@ -15,7 +15,10 @@ async function startGame() {
         return;
     }
 
-    const response = await fetch("http://localhost:3000/check/" + username);
+    const response = await fetch(
+        "https://baywin-dunya-kupasi.onrender.com/check/" + username
+    );
+
     const result = await response.json();
 
     if (result.exists) {
@@ -74,16 +77,19 @@ async function submitPredictions() {
         return;
     }
 
-    const response = await fetch("http://localhost:3000/submit", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            username,
-            predictions
-        })
-    });
+    const response = await fetch(
+        "https://baywin-dunya-kupasi.onrender.com/submit",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                predictions
+            })
+        }
+    );
 
     const result = await response.json();
 
